@@ -77,7 +77,6 @@ def un_zip_apk(apk_temp_name,resname="res"):
         print(OSError.errno)
     images_ziped = add_dir_file(res) #打包文件
     os.remove(apk_temp_name)
-    os.remove(res)
     return images_ziped
 
 def walk_apk_folders(file_dir):
@@ -124,7 +123,7 @@ def add_dir_file(startdir):
     imgs_path = LOCAL_DIRECTORY_PATH+"result/resoures/"
     timer = str(time.time())
     file_ = imgs_path+timer+".zip"
-    imgs_path_name = "ImageZip/"+timer+".zip"
+    imgs_path_name = timer+".zip"
     f = zipfile.ZipFile(file_,'w',zipfile.ZIP_DEFLATED)
     for dirpath, dirnames, filenames in os.walk(startdir):
         for filename in filenames:

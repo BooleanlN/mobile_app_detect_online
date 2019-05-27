@@ -8,7 +8,7 @@ from flask import request, json, session, render_template, url_for, flash
 from app.models import User
 from app.auth import bp
 import uuid
-
+from flasgger import swag_from
 @bp.route('/login',methods=['POST'])
 def login():
     """

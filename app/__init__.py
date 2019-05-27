@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from logging.handlers import RotatingFileHandler
 from flask_session import Session
+from flasgger import Swagger,swag_from
 import os
 
 db = SQLAlchemy() #表示数据库
@@ -23,6 +24,7 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     login.init_app(app)
     se.init_app(app)
+    Swagger(app)
     #注册蓝图
     from app.errors import bp as errors_bp
     from app.auth import bp as auth_bp
