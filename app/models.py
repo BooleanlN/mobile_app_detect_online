@@ -12,10 +12,15 @@ user_role = db.Table('userRole',db.Column('user_id',db.Integer,db.ForeignKey('us
 role_previlage = db.Table('rolePrevilage',db.Column('role_id',db.Integer,db.ForeignKey('role.id')),
                      db.Column('previlage', db.Integer, db.ForeignKey('previlage.id')))
 class User(UserMixin,db.Model):
+    """
+    用户
+    """
     id = db.Column(db.Integer,primary_key=True)
     username = db.Column(db.String(64),index=True,unique=True)
     password_hash = db.Column(db.String(128))
     email = db.Column(db.String(128),unique=True)
+    sex = db.Column(db.String(10))
+    #外键，可联合查询
     history = db.relationship('History',backref='author',lazy='dynamic')
     roles = db.relationship('Role',secondary=user_role,backref=db.backref('users',lazy='dynamic'),lazy='dynamic')
     def __repr__(self):#返回一个可以用来表示对象的可打印字符串
@@ -26,7 +31,12 @@ class User(UserMixin,db.Model):
         return check_password_hash(self.password_hash,password)
     def check_email(self,email):
         return  not self.email == email
+    def get_id(self):
+        return self.id
 class History(db.Model):
+    """
+    历史纪录
+    """
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.String(140))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
@@ -40,6 +50,8 @@ class Role(db.Model):
     previlages = db.relationship('Previlage',secondary=role_previlage,backref=db.backref('roles',lazy='dynamic'),lazy='dynamic')
     def __repr__(self):
         return '<Role {}>'.format(self.description)
+    def getDescription(self):
+        return self.description
 class Previlage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(140))

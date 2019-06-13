@@ -6,6 +6,9 @@ from app.main import bp
 #主页
 @bp.route('/')
 @bp.route('/index')
-@login_required
 def index():
     return render_template('index.html')
+
+@bp.route('/manage')
+def manage():
+    return  render_template('manage/index.html')

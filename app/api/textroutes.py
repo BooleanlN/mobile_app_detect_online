@@ -13,9 +13,9 @@ from werkzeug.utils import secure_filename
 
 from app.api import bp,LOCAL_DIRECTORY_PATH
 
-TEXT_RECO_URL = "http://34.219.149.156:5000/filter"
+TEXT_RECO_URL = "http://127.0.0.1:8777/filter"
 
-@bp.route('/api/textReco',methods=['POST'])
+@bp.route('/txtReco',methods=['POST'])
 def recoTxt():
   """
   文本文件甄别接口
@@ -23,14 +23,22 @@ def recoTxt():
     """
   result = []
   if request.method == 'POST':
-    texts = request.files.getlist('txt')
-    for text in texts:
-        textname = secure_filename(str(time.time()) +text.filename)
+    txts = request.files.getlist('txt')
+    for txt in txts:
+        textname = secure_filename(str(time.time()) +txt.filename)
         textpath = LOCAL_DIRECTORY_PATH + '/temp/text/' + textname
-        text.save(textpath)
+        txt.save(textpath)
         with open(textpath,"r",encoding="utf8") as file_:
           data = file_.read()
         request_reco_result = requests.post(TEXT_RECO_URL,data={'content':data})
         if(request_reco_result.json()['success']):
           result.append(request_reco_result.json())
     return json.dumps({"data":result, "msg": "success", "code": 1})
+@bp.route('/textReco',methods=['POST'])
+def recoText():
+    text = request.form.get('text')
+    result = []
+    request_reco_result = requests.post(TEXT_RECO_URL, data={'content': text})
+    if (request_reco_result.json()['success']):
+        result.append(request_reco_result.json())
+    return json.dumps({"data": result, "msg": "success", "code": 1})

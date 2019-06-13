@@ -23,11 +23,10 @@ def image_reco(sessionid=None):
     """
     images = request.files.getlist('img')
     res_dir = []
-    for i in range(0, len(images)):
-        if is_img(images[i].filename):
-            image_name = secure_filename(str(time.time()) + images[i].filename)
-            images[i].save(LOCAL_DIRECTORY_PATH + 'temp/' + image_name)
+    for img in images:
+        if is_img(img.filename):
+            image_name = secure_filename(str(time.time()) + img.filename)
+            img.save(LOCAL_DIRECTORY_PATH + 'temp/' + image_name)
             res_ = get_image_content(LOCAL_DIRECTORY_PATH + 'temp/' + image_name)
             res_dir.append(res_)
-            # print(res_dir)
-    return json.dumps({"data": res_dir, "mes": "success", "code": 1},ensure_ascii=False)
+    return json.dumps({"data": res_dir, "msg": "success", "code": 1},ensure_ascii=False)

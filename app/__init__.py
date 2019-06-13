@@ -6,7 +6,8 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from logging.handlers import RotatingFileHandler
 from flask_session import Session
-from flasgger import Swagger,swag_from
+from flasgger import Swagger
+from flask_cors import CORS
 import os
 
 db = SQLAlchemy() #表示数据库
@@ -25,15 +26,18 @@ def create_app(config_class=Config):
     login.init_app(app)
     se.init_app(app)
     Swagger(app)
+    CORS(app)
     #注册蓝图
     from app.errors import bp as errors_bp
     from app.auth import bp as auth_bp
     from app.main import bp as main_bp
     from app.api import bp as api_bp
+    from app.manage import bp as manage_bp
     app.register_blueprint(auth_bp,url_prefix='/auth')
     app.register_blueprint(errors_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp,url_prefix='/api')
+    app.register_blueprint(manage_bp,url_prefix='/manage')
     if not app.debug:
         # ...
 

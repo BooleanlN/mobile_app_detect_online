@@ -11,16 +11,58 @@ import tempfile
 
 import time
 import zipfile
+from glob import glob
 
+from docx import Document
 import requests
 
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 ALLOWED_APK = {'apk','zip'}
 IMAGE_RECO_URL = "http://192.168.139.139:5000/predict"
-TEXT_CHECK_URL = "http://34.219.149.156:5000/filter"
+TEXT_CHECK_URL = "http://127.0.0.1:8777/filter"
 LOCAL_DIRECTORY_PATH = os.getcwd() + "/" #当前文件路径
+DOCS_SAVE_PATH = LOCAL_DIRECTORY_PATH + "result/docs/"
+SOURCE_ZIP_PATH = LOCAL_DIRECTORY_PATH + "result/resoures/"
 
+def unzip_apk_plus_identify(apk_temp_name):
+    """
+    apk解压加图片资源鉴别
+    :param apk_temp_name: 
+    :return: 
+    """
+    # 解压
+    temp_apk_folder = unzip_file(apk_temp_name, "res")
+    # 获取图片资源文件
+    res = walk_apk_folders(temp_apk_folder)
+    try:
+        shutil.rmtree(temp_apk_folder)
+    except  OSError:
+        print(OSError.errno)
+    os.remove(apk_temp_name)
+    test = Document()
+    test.add_heading('鉴别结果报告', 0)
+    IMAGE_PATH = glob(res + "/*.*")
+    s = requests.Session()
+    s.keep_alive = False
+    for IMAGE in sorted(IMAGE_PATH):
+        test.add_heading("检测图片:" + IMAGE.split('/')[-1] + '\n', 2)
+        image = open(IMAGE, "rb").read()
+        payload = {"image": image}
+        r = s.post(IMAGE_RECO_URL, files=payload)
+        r = r.json()
+        r_word = r["predictions"][0]
+        # print(r)
+        if r["success"]:
+            test.add_paragraph("识别图片中的文字结果:" + r_word + "\n")
+            text_reco_result = requests.post(TEXT_CHECK_URL, data={'content': r_word}).json()
+            if(text_reco_result['success']):
+                for word in text_reco_result['words']:
+                    test.add_paragraph("敏感词：" + word+ "\n")
+                test.add_paragraph("检测结果：" + text_reco_result["result"][0] + "\n")
+    docsname = 'Result' + str(time.time()) + '.docx'
+    test.save(DOCS_SAVE_PATH + docsname)
+    return docsname
 def is_img(filename):
     """
     :param filename: 
@@ -55,22 +97,16 @@ def get_image_content(filename):
   else:
     return "图片格式错误"
 
-def un_zip_apk(apk_temp_name,resname="res"):
+def un_zip_apk(apk_temp_name):
     """
     :param apk_temp_name: 
     :param resname: 
     :return: 解压apk包
     """
-    zip_file = zipfile.ZipFile(apk_temp_name)
-    temp_apk_folder=tempfile.mkdtemp(resname+"_unzip",prefix="temp",dir=LOCAL_DIRECTORY_PATH+'temp/apk/')
-    for names in zip_file.namelist():
-        try:
-            zip_file.extract(names,temp_apk_folder)
-        except:
-            continue
-    zip_file.close()
+    # 解压
+    temp_apk_folder = unzip_file(apk_temp_name,"res")
+    # 获取图片资源文件
     res = walk_apk_folders(temp_apk_folder)
-    print(res)
     try:
         shutil.rmtree(temp_apk_folder)
     except  OSError:
@@ -117,12 +153,12 @@ def walk_apk_folders(file_dir):
 
 def add_dir_file(startdir):
     """
-    :param startdir: 
+    :param startdir: 图片文件夹路径
     :return: 打包后的文件路径，将图片资源文件打包
     """
-    imgs_path = LOCAL_DIRECTORY_PATH+"result/resoures/"
+
     timer = str(time.time())
-    file_ = imgs_path+timer+".zip"
+    file_ = SOURCE_ZIP_PATH+timer+".zip"
     imgs_path_name = timer+".zip"
     f = zipfile.ZipFile(file_,'w',zipfile.ZIP_DEFLATED)
     for dirpath, dirnames, filenames in os.walk(startdir):
@@ -131,3 +167,20 @@ def add_dir_file(startdir):
             os.remove(os.path.join(dirpath,filename))
     f.close()
     return imgs_path_name
+
+def unzip_file(apk_temp_name,resname="res"):
+    """
+    解压缩apk
+    :param apk_temp_name: apk文件路径
+    :param resname: 结果文件夹
+    :return: 结果文件夹路径
+    """
+    zip_file = zipfile.ZipFile(apk_temp_name)
+    temp_apk_folder = tempfile.mkdtemp(resname + "_unzip", prefix="temp", dir=LOCAL_DIRECTORY_PATH + 'temp/apk/')
+    for names in zip_file.namelist():
+        try:
+            zip_file.extract(names, temp_apk_folder)
+        except:
+            continue
+    zip_file.close()
+    return temp_apk_folder
