@@ -1,5 +1,5 @@
 import os
-import redis
+# import redis
 from dotenv import load_dotenv
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -13,5 +13,5 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     ADMINS = ['1363371357@qq.com']
     SESSION_TYPE = os.environ.get('SESSION_TYPE') or 'nowhere'
-    SESSION_REDIS = redis.Redis(host=os.environ.get('SESSION_REDIS_SEVER'),port=os.environ.get('SESSION_REDIS_PORT'))
+    # SESSION_REDIS = redis.Redis(host=os.environ.get('SESSION_REDIS_SEVER'),port=os.environ.get('SESSION_REDIS_PORT'))
     SESSION_KEY_PREFIX = os.environ.get('SESSION_KEY_PREFIX') or 'flask'

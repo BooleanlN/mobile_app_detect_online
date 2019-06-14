@@ -36,7 +36,7 @@ def download_img_unzip_URL(filename):
     :param filename: 
     :return: 返回apk资源文件下载url
     """
-    res_dir = LOCAL_DIRECTORY_PATH+'result/resources'
+    res_dir = LOCAL_DIRECTORY_PATH+'result/resoures'
     return send_from_directory(res_dir, filename, as_attachment=True)  # as_attachment=True 下载，False 为打开
 
 @bp.route('/apk',methods=['POST'])
